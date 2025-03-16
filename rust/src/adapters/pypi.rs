@@ -1,8 +1,8 @@
+use super::RepositoryAdapter;
 use crate::{
-    RepositoryAdapter,
     PackageMetadata,
-    DependencyRelation,
     RepoError,
+    DependencyRelation,
 };
 use reqwest::blocking::Client;
 use serde::Deserialize;
@@ -42,19 +42,20 @@ impl PyPIAdapter {
 impl RepositoryAdapter for PyPIAdapter {
     fn search(&self, query: &str) -> Result<Vec<PackageMetadata>, RepoError> {
         let url = format!("https://pypi.org/pypi?pypi-search?:action=search&term={}", query);
-        let response = self.client.get(&url).send()?;
+        let response = self.client.get(&url).send().map_err(|_| RepoError::SearchFailed)?;
         // Parse response and convert to PackageMetadata
         Ok(vec![])
     }
 
     fn fetch_metadata(&self, package_name: &str) -> Result<PackageMetadata, RepoError> {
         let url = format!("https://pypi.org/pypi/{}/json", package_name);
-        let response = self.client.get(&url).send()?;
-        let pypi_response: PyPIResponse = response.json()?;
+        let response = self.client.get(&url).send().map_err(|_| RepoError::NotFound)?;
+        let pypi_response: PyPIResponse = response.json().map_err(|_| RepoError::NotFound)?;
         
         let mut dependencies = Vec::new();
         for req in pypi_response.info.requires_dist {
-            dependencies.push(req.parse()?);
+            // Parse dependency string into proper format
+            dependencies.push(req.parse().map_err(|_| RepoError::NotFound)?);
         }
 
         let download_url = pypi_response.urls
@@ -73,9 +74,9 @@ impl RepositoryAdapter for PyPIAdapter {
 
     fn download_package(&self, package: &PackageMetadata, dest: &Path) -> Result<(), RepoError> {
         if let Some(url) = &package.download_url {
-            let response = self.client.get(url).send()?;
-            let content = response.bytes()?;
-            std::fs::write(dest, content)?;
+            let response = self.client.get(url).send().map_err(|_| RepoError::DownloadFailed)?;
+            let content = response.bytes().map_err(|_| RepoError::DownloadFailed)?;
+            std::fs::write(dest, content).map_err(|_| RepoError::DownloadFailed)?;
             Ok(())
         } else {
             Err(RepoError::NoDownloadUrl)

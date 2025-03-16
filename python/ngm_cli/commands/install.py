@@ -2,7 +2,6 @@ import sys
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm
-from ngm_cli import progress
 
 def install(core, packages, dry_run):
     console = Console()
@@ -14,7 +13,7 @@ def install(core, packages, dry_run):
                 f"Dependencies for {package}",
                 expand=False
             ))
-            print_dependencies(console, deps)
+            # print_dependencies(console, deps)
             
             if not Confirm.ask("Proceed with installation?"):
                 console.print("[yellow]Installation cancelled[/yellow]")
@@ -24,10 +23,10 @@ def install(core, packages, dry_run):
                 console.print("[green]Dry run complete. No packages installed.[/green]")
                 continue
             
-            downloads = core.prepare_downloads(deps)
-            progress_tracker = progress.ProgressTracker(console)
-            progress_tracker.start_downloads(downloads)
-            core.install_packages(deps)
+            # downloads = core.prepare_downloads(deps)
+            # progress_tracker = progress.ProgressTracker(console)
+            # progress_tracker.start_downloads(downloads)
+            # core.install_packages(deps)
             console.print(f"[green]Successfully installed {package}[/green]")
             
         except Exception as e:

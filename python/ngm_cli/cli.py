@@ -2,8 +2,8 @@ import argparse
 import sys
 from typing import List
 
-from ngm_cli import commands
-from ngm_cli.utils import load_core
+from . import commands
+from .utils import load_core
 
 def main():
     parser = argparse.ArgumentParser(description='ngm - Next Generation Package Manager')
@@ -44,7 +44,7 @@ def main():
 
     try:
         if args.command == 'install':
-            commands.install(core, args.packages, args.dry_run)
+            commands.install(core, args.packages, args.dry-run)
         elif args.command == 'search':
             commands.search(core, args.query, args.repo)
         elif args.command == 'update':

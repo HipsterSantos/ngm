@@ -3,7 +3,6 @@ use petgraph::algo;
 use crate::{
     RepositoryAdapter,
     PackageMetadata,
-    DependencyRelation,
     RepoError,
 };
 use std::collections::HashMap;
@@ -52,7 +51,7 @@ impl DependencyResolver {
     fn build_dependency_graph(&self, graph: &mut Graph<PackageMetadata, DependencyRelation>, node: NodeIndex) -> Result<(), ResolveError> {
         let package = &graph[node];
         for dependency in &package.dependencies {
-            let dep_node = self.add_package_to_graph(graph, &dependency.name)?;
+            let dep_node = self.add_package_to_graph(graph, &dependency)?;
             graph.add_edge(node, dep_node, DependencyRelation::Direct);
             self.build_dependency_graph(graph, dep_node)?;
         }
@@ -80,4 +79,10 @@ impl From<RepoError> for ResolveError {
             _ => ResolveError::VersionConflict("Unknown".to_string()),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DependencyRelation {
+    Direct,
+    Transitive,
 }
